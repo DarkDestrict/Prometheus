@@ -45,3 +45,39 @@ Restart Prometheus:
 
 bash
 sudo systemctl restart prometheus
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+Clean Fix
+Move the binary to a standard location
+
+bash
+sudo mv /root/node_exporter-1.8.1.linux-amd64/node_exporter /usr/local/bin/
+sudo chmod +x /usr/local/bin/node_exporter
+Create a dedicated user
+
+bash
+sudo useradd --no-create-home --shell /bin/false node_exporter
+sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
+Update the service file
+Edit /etc/systemd/system/node_exporter.service:
+
+ini
+[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+User=node_exporter
+ExecStart=/usr/local/bin/node_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Reload and restart
+
+bash
+sudo systemctl daemon-reload
+sudo systemctl enable node_exporter
+sudo systemctl restart node_exporter
+sudo systemctl status node_exporter
