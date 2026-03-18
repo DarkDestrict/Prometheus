@@ -1,0 +1,66 @@
+🛠 Step-by-Step Guide to Installing Prometheus on EC2
+1. Launch an EC2 Instance
+AMI: Use Amazon Linux 2 or Ubuntu 22.04 for compatibility.
+
+Instance type: t2.micro (for testing) or larger for production.
+
+Security group: Allow inbound traffic on port 9090 (Prometheus default) and 22 (SSH).
+
+2. Connect to Your Instance
+bash
+ssh -i your-key.pem ec2-user@<EC2-Public-IP>
+
+3. Install Dependencies
+Update packages and install wget/tar:
+
+bash
+sudo yum update -y   # Amazon Linux
+sudo yum install wget tar -y
+
+4. Download Prometheus
+bash
+wget https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz
+tar xvf prometheus-2.52.0.linux-amd64.tar.gz
+cd prometheus-2.52.0.linux-amd64
+
+5. Configure Prometheus
+Create or edit prometheus.yml:
+
+yaml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+6. Run Prometheus
+bash
+./prometheus --config.file=prometheus.yml
+Access via browser: http://<EC2-Public-IP>:9090
+
+7. (Optional) Run as a Service
+Create a systemd service file /etc/systemd/system/prometheus.service:
+
+ini
+[Unit]
+Description=Prometheus
+After=network.target
+
+[Service]
+ExecStart=/home/ec2-user/prometheus-2.52.0.linux-amd64/prometheus --config.file=/home/ec2-user/prometheus-2.52.0.linux-amd64/prometheus.yml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Enable and start:
+
+8. Set Permissions
+chmod +x /home/prometheus/prometheus-2.52.0.linux-amd64/prometheus
+chown -R prometheus:prometheus /home/prometheus/prometheus-2.52.0.linux-amd64
+
+bash
+sudo systemctl daemon-reload
+sudo systemctl enable prometheus
+sudo systemctl start prometheus
