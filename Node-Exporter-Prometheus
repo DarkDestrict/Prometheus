@@ -1,0 +1,47 @@
+🛠 Step-by-Step Installation Guide
+1. Download Node Exporter
+bash
+wget https://github.com/prometheus/node_exporter/releases/download/v1.8.1/node_exporter-1.8.1.linux-amd64.tar.gz
+tar xvf node_exporter-1.8.1.linux-amd64.tar.gz
+cd node_exporter-1.8.1.linux-amd64
+
+2. Run Node Exporter
+bash
+./node_exporter
+By default, it listens on port 9100.
+
+Test in browser: http://<EC2-Public-IP>:9100/metrics
+
+3. (Optional) Run as a Systemd Service
+Create a service file /etc/systemd/system/node_exporter.service:
+
+ini
+[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+ExecStart=/home/ec2-user/node_exporter-1.8.1.linux-amd64/node_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Enable and start:
+
+bash
+sudo systemctl daemon-reload
+sudo systemctl enable node_exporter
+sudo systemctl start node_exporter
+
+4. Configure Prometheus to Scrape Node Exporter
+Edit prometheus.yml:
+
+yaml
+scrape_configs:
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['<EC2-Public-IP>:9100']
+Restart Prometheus:
+
+bash
+sudo systemctl restart prometheus
